@@ -86,14 +86,14 @@ jobs:
       - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         name: Save Docker Image for the PostgreSQL for the 'integration-test' stage
         run: |
-          docker save postgres:16 | gzip > postgres-16.tar.gz
+          docker save postgres:16 | gzip > postgres-16.tar
       
       - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
-        name: Upload ${{ github.repository }}.tar.gz for the integration test phase
+        name: Upload ${{ github.repository }}.tar for the integration test phase
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.repository }}-gz-file
-          path: ${{ github.repository }}.tar.gz
+          path: ${{ github.repository }}.tar
           retention-days: 7
 
   build:
@@ -124,14 +124,14 @@ jobs:
       - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         name: Save Docker Image to Tarball
         run: |
-          docker save ${{ github.repository }}:feature-${{ github.sha }} | gzip > ${{ github.repository }}.tar.gz
+          docker save ${{ github.repository }}:feature-${{ github.sha }} -o ${{ github.repository }}.tar
       
       - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
-        name: Upload ${{ github.repository }}.tar.gz for the integration test phase
+        name: Upload ${{ github.repository }}.tar for the integration test phase
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.repository }}-gz-file
-          path: ${{ github.repository }}.tar.gz
+          path: ${{ github.repository }}.tar
           retention-days: 7
 
   # Only run the 'integration-test' if the current Workflow is triggered by PR
