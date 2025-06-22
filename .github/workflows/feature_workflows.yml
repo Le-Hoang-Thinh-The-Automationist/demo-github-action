@@ -135,24 +135,24 @@ jobs:
     environment: feature
     env:
       # Default environment variables needed for the Application
-      POSTGRES_IP:          ${{ vars.feature.POSTGRES_IP }}
-      POSTGRES_PORT:        ${{ vars.feature.POSTGRES_PORT }}
+      POSTGRES_IP:          ${{ vars.POSTGRES_IP }}
+      POSTGRES_PORT:        ${{ vars.POSTGRES_PORT }}
 
       # Secret environments in the GitHub Workflow
-      POSTGRES_DB:          ${{ secrets.feature.POSTGRES_DB }}
-      POSTGRES_USER:        ${{ secrets.feature.POSTGRES_USER }}  
-      POSTGRES_PASSWORD:    ${{ secrets.feature.POSTGRES_PASSWORD }}
+      POSTGRES_DB:          ${{ secrets.POSTGRES_DB }}
+      POSTGRES_USER:        ${{ secrets.POSTGRES_USER }}  
+      POSTGRES_PASSWORD:    ${{ secrets.POSTGRES_PASSWORD }}
 
     # Create a Docker dummy PostgreSQL database
     services:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_DB:        ${{ secrets.feature.POSTGRES_DB }}
-          POSTGRES_USER:      ${{ secrets.feature.POSTGRES_USER }}  
-          POSTGRES_PASSWORD:  ${{ secrets.feature.POSTGRES_PASSWORD }}
+          POSTGRES_DB:        ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER:      ${{ secrets.POSTGRES_USER }}  
+          POSTGRES_PASSWORD:  ${{ secrets.POSTGRES_PASSWORD }}
         ports:
-          - ${{ vars.feature.POSTGRES_PORT }}:5432      
+          - ${{ vars.POSTGRES_PORT }}:5432      
 
     steps:
       - name: Download build outputs
@@ -160,22 +160,22 @@ jobs:
         with:
           name: ${{ needs.ci-status.outputs.repository_name }}-gz-file
           path: artifact/
-          
+
       - name: Unbox Docker images
         run: "docker load -i artifact/${{ needs.ci-status.outputs.repository_name }}.tar"
 
       - name: Run Application Container
         run: |
           docker run -d \
-            --name test-docker-app \
-            -p ${{ vars.feature.CONTAINER_PORT }}:${{ vars.feature.CONTAINER_PORT }} \
-            -e HOSTNAME=ci_hostname \
-            -e POSTGRES_IP=$POSTGRES_IP \
-            -e POSTGRES_PORT=$POSTGRES_PORT \
-            -e POSTGRES_DB=$POSTGRES_DB \
-            -e POSTGRES_USER=$POSTGRES_USER \
-            -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-            ${{ github.repository }}:feature-${{ github.sha }} \
+          --name test-docker-app \
+          -p ${{ vars.CONTAINER_PORT }}:${{ vars.CONTAINER_PORT }} \
+          -e HOSTNAME=ci_hostname \
+          -e POSTGRES_IP=$POSTGRES_IP \
+          -e POSTGRES_PORT=$POSTGRES_PORT \
+          -e POSTGRES_DB=$POSTGRES_DB \
+          -e POSTGRES_USER=$POSTGRES_USER \
+          -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+          ${{ github.repository }}:feature-${{ github.sha }} \
 
       - name: Basic Request testing for the response
         run: |
