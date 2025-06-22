@@ -110,17 +110,17 @@ jobs:
       
       # Save Docker to a zipfile and upload the Artifact for the integration testing stage 
       # Only run the steps below if the current Workflow is triggered by PR
-      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
+      - if: ${{ job.ci-status.outputs.currently_has_pr == 'true' }}
         name: Save Docker Image to Tarball
         run: |
-          docker save ${{ github.repository }}:feature-${{ github.sha }} -o ${{ needs.ci-status.outputs.repository_name }}.tar
+          docker save ${{ github.repository }}:feature-${{ github.sha }} -o ${{ job.ci-status.outputs.repository_name }}.tar
       
-      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
-        name: Upload ${{ needs.ci-status.outputs.repository_name }}.tar for the integration test phase
+      - if: ${{ job.ci-status.outputs.currently_has_pr == 'true' }}
+        name: Upload ${{ job.ci-status.outputs.repository_name }}.tar for the integration test phase
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.ci-status.outputs.repository_name }}-gz-file
-          path: ${{ needs.ci-status.outputs.repository_name }}.tar
+          name: ${{ job.ci-status.outputs.repository_name }}-gz-file
+          path: ${{ job.ci-status.outputs.repository_name }}.tar
           retention-days: 7
 
   # Only run the 'integration-test' if the current Workflow is triggered by PR
@@ -150,14 +150,14 @@ jobs:
       - name: Download build outputs
         uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.ci-status.outputs.repository_name }}-gz-file     # must match the upload ‘name’
+          name: ${{ job.ci-status.outputs.repository_name }}-gz-file     # must match the upload ‘name’
           path: artifact/
 
       - name: Echo the build output
         run: "ls artifact/"
   
       - name: Unbox Docker images
-        run: "docker load -i artifact/${{ needs.ci-status.outputs.repository_name }}.tar"
+        run: "docker load -i artifact/${{ job.ci-status.outputs.repository_name }}.tar"
 
       - name: Check the docker image label
         run: "docker ps"
