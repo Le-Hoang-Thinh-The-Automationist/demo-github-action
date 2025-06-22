@@ -150,7 +150,7 @@ jobs:
       - name: Download build outputs
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.repository }}-gz-file     # must match the upload ‘name’
+          name: ${{ needs.ci-status.outputs.repository_name }}-gz-file     # must match the upload ‘name’
           path: artifact/
 
       - name: Echo the build output
