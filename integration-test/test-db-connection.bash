@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DEFAULT_PORT=18080
+DEFAULT_PORT=8080
 DEFAULT_ADDRESS=localhost
 
 URL="http://$DEFAULT_ADDRESS:$DEFAULT_PORT/check"
