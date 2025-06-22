@@ -14,6 +14,9 @@ on:
     branches:
       - "feature/**"
 
+env:
+  REPO_NAME: ${{ github.repository.split('/')[1] }}
+
 jobs:
   # This stage helps check the environment status other stage
   # This stage should run parallely and only needed for the 'integration-test' stage
@@ -51,7 +54,6 @@ jobs:
             return pulls.length > 0;
           result-encoding: string
 
-
   unit-test-and-lint:
     name: Unit Test & Lint
     runs-on: ubuntu-22.04
@@ -81,21 +83,6 @@ jobs:
       - name: Run test and lint
         run: mvn verify
 
-      # Save Docker to a zipfile and upload the Artifact for the integration testing stage 
-      # Only run the steps below if the current Workflow is triggered by PR
-      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
-        name: Save Docker Image for the PostgreSQL for the 'integration-test' stage
-        run: |
-          docker save postgres:16 | gzip > postgres-16.tar
-      
-      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
-        name: Upload ${{ github.repository }}.tar for the integration test phase
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.repository }}-gz-file
-          path: ${{ github.repository }}.tar
-          retention-days: 7
-
   build:
     name: Build Stage
     runs-on: ubuntu-22.04
@@ -124,14 +111,14 @@ jobs:
       - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         name: Save Docker Image to Tarball
         run: |
-          docker save ${{ github.repository }}:feature-${{ github.sha }} -o ${{ github.repository }}.tar
+          docker save ${{ github.repository }}:feature-${{ github.sha }} -o ${{ env.REPO_NAME }}.tar
       
       - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
-        name: Upload ${{ github.repository }}.tar for the integration test phase
+        name: Upload ${{ env.REPO_NAME }}.tar for the integration test phase
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.repository }}-gz-file
-          path: ${{ github.repository }}.tar
+          name: ${{ env.REPO_NAME }}-gz-file
+          path: ${{ env.REPO_NAME }}.tar
           retention-days: 7
 
   # Only run the 'integration-test' if the current Workflow is triggered by PR
@@ -181,4 +168,11 @@ jobs:
           bash integration-test/test-db-connection.bash
           bash integration-test/test-pod-id.bash
 
+  report-failure:
+    if: failure()
+    name: Report CI Build failure 
+    runs-on: ubuntu-22.04
 
+    steps:
+      - name: Print CI build failed
+        run: echo "CI build failed"
