@@ -5,10 +5,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class PodInfoController {
+        
+    @GetMapping("/")
+    public String getWelcomeMessage() {
+        // Retrieves the HOSTNAME environment variable
+        String hostname = System.getenv("HOSTNAME"); 
 
-    @GetMapping("/pod-id")
-    public String getPodId(){
-        // La variable d'environnement "HOSTNAME" contient l’ID du pod dans Kubernetes.
-        return System.getenv("HOSTNAME");
+        return "Hello world, welcome to " + hostname;
     }
+
 }
