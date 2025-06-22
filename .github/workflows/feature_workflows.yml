@@ -14,9 +14,6 @@ on:
     branches:
       - "feature/**"
 
-env:
-  REPO_NAME: ${{ github.repository }}
-
 jobs:
   unit-test-and-lint:
     name: Unit Test & Lint
