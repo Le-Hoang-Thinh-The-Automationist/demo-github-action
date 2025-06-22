@@ -18,6 +18,35 @@ env:
   REPO_NAME: ${{ github.repository }}
 
 jobs:
+  unit-test-and-lint:
+    name: Unit Test & Lint
+    runs-on: ubuntu-22.04
+    
+    steps:
+
+      #  Checkout stage according to '1.3.1. CI/CD Pipeline design'
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Cache the Maven package for the 'build' job
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          # hashFiles('**/pom.xml') will only change if the content of the pom.xml changes
+          # If not change, then the build stage will continue to use the previous cache
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+      #  'Test & Lint' stage according to '1.3.1. CI/CD Pipeline design'
+      - name: Run test and lint
+        run: mvn verify
+        
   # This stage helps check the environment status other stage
   # This stage should run parallely and only needed for the 'integration-test' stage
   ci-status:
@@ -59,36 +88,6 @@ jobs:
         id: get_repo_name 
         run: repository_name=$(echo ${{ github.repository }} | cut -d'/' -f2) >> $GITHUB_OUTPUT
       
-
-  unit-test-and-lint:
-    name: Unit Test & Lint
-    runs-on: ubuntu-22.04
-    
-    steps:
-
-      #  Checkout stage according to '1.3.1. CI/CD Pipeline design'
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      # Cache the Maven package for the 'build' job
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          # hashFiles('**/pom.xml') will only change if the content of the pom.xml changes
-          # If not change, then the build stage will continue to use the previous cache
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-
-      #  'Test & Lint' stage according to '1.3.1. CI/CD Pipeline design'
-      - name: Run test and lint
-        run: mvn verify
-
   build:
     name: Build Stage
     runs-on: ubuntu-22.04
@@ -117,14 +116,14 @@ jobs:
       - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         name: Save Docker Image to Tarball
         run: |
-          docker save ${{ github.repository }}:feature-${{ github.sha }} -o ${{ env.REPO_NAME }}.tar
+          docker save ${{ github.repository }}:feature-${{ github.sha }} -o ${{ needs.ci-status.outputs.repository_name }}.tar
       
       - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
-        name: Upload ${{ env.REPO_NAME }}.tar for the integration test phase
+        name: Upload ${{ needs.ci-status.outputs.repository_name }}.tar for the integration test phase
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.REPO_NAME }}-gz-file
-          path: ${{ env.REPO_NAME }}.tar
+          name: ${{ needs.ci-status.outputs.repository_name }}-gz-file
+          path: ${{ needs.ci-status.outputs.repository_name }}.tar
           retention-days: 7
 
   # Only run the 'integration-test' if the current Workflow is triggered by PR
@@ -161,7 +160,7 @@ jobs:
         run: "ls artifact/"
   
       - name: Unbox Docker images
-        run: "docker load -i artifact/${{ github.repository }}-gz-file"
+        run: "docker load -i artifact/${{ needs.ci-status.outputs.repository_name }}.tar"
 
       - name: Check the docker image label
         run: "docker ps"
