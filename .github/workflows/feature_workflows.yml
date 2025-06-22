@@ -26,7 +26,7 @@ jobs:
 
     outputs:
       currently_has_pr: ${{ steps.pr_check.outputs.result }}
-      repository_name: ${{ steps.get_repo_name.outputs }}
+      repository_name: ${{ steps.get_repo_name.outputs.repository_name }}
 
     steps:
       - name: Set branch name
@@ -176,7 +176,7 @@ jobs:
 
   report-failure:
     if: failure()
-    needs: [unit-test-and-lint, build]
+    needs: [unit-test-and-lint, build, integration-test]
     name: Report CI Build failure 
     runs-on: ubuntu-22.04
 
