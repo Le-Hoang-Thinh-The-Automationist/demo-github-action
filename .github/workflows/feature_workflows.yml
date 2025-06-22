@@ -1,27 +1,60 @@
 name: CI for feature branch
 
 on:
+  # Manually triggered
+  workflow_dispatch:
+  
+  # Event triggered by push
   push:
     branches: 
       - "feature/**"
   
+  # Event triggered by pull request
   pull_request:
     branches:
       - "feature/**"
 
 jobs:
+  # This stage helps check the environment status other stage
+  # This stage should run parallely and only needed for the 'integration-test' stage
+  ci-status:
+    name: Check CI status for further usage
+    runs-on: ubuntu-22.04
+
+    outputs:
+      currently_has_pr: ${{ steps.pr_check.outputs.result }}
+
+    steps:
+      - name: Set branch name
+        id: branch_name
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+      
+      # This is used for the later 
+      - name: Check for open pull request on this branch
+        id: pr_check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const branch = context.payload.pull_request 
+              ? context.payload.pull_request.head.ref 
+              : process.env.GITHUB_REF.replace('refs/heads/', '');
+  
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: 'open'
+            });
+  
+            console.log(`Found ${pulls.length} open pull request(s) for branch '${branch}'`);
+            // Return "true" if there's at least one open PR for the branch.
+            return pulls.length > 0;
+          result-encoding: string
+
+
   unit-test-and-lint:
     name: Unit Test & Lint
     runs-on: ubuntu-22.04
-    
-    environment: feature
-    env:
-      # The IP address is local for docker container
-      POSTGRES_IP_ADDRESS:  "172.25.1.3"
-      POSTGRES_DB:          ${{ secrets.feature.POSTGRES_DB }}
-      POSTGRES_USER:        ${{ secrets.feature.POSTGRES_USER }}  
-      POSTGRES_PASSWORD:    ${{ secrets.feature.POSTGRES_PASSWORD }}
-    # 
     
     steps:
 
@@ -43,17 +76,6 @@ jobs:
           # hashFiles('**/pom.xml') will only change if the content of the pom.xml changes
           # If not change, then the build stage will continue to use the previous cache
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-  
-      - name: Setup Docker container at PosrgreSQL for local testing
-        run: | 
-          docker network create --subnet=172.25.1.0/24 test_static_network
-          docker run --name test-postgres-db \
-            --network test_static_network \
-            --ip=172.25.1.3 \
-            -e POSTGRES_DB=${{ env.POSTGRES_DB }} \
-            -e POSTGRES_USER=${{ env.POSTGRES_USER }} \
-            -e POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
-            -d postgres:16
 
       #  'Test & Lint' stage according to '1.3.1. CI/CD Pipeline design'
       - name: Run test and lint
@@ -61,12 +83,12 @@ jobs:
 
       # Save Docker to a zipfile and upload the Artifact for the integration testing stage 
       # Only run the steps below if the current Workflow is triggered by PR
-      - if: ${{ github.event_name == 'pull_request' }}
+      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         name: Save Docker Image for the PostgreSQL for the 'integration-test' stage
         run: |
           docker save postgres:16 | gzip > postgres-16.tar.gz
       
-      - if: ${{ github.event_name == 'pull_request' }}
+      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         name: Upload ${{ github.repository }}.tar.gz for the integration test phase
         uses: actions/upload-artifact@v4
         with:
@@ -78,7 +100,9 @@ jobs:
     name: Build Stage
     runs-on: ubuntu-22.04
     # Only run the 'build' job after the stage 'unit-test-and-lint' passed
-    needs: "unit-test-and-lint"
+    needs:
+      - "ci-status"
+      - "unit-test-and-lint"
     
     steps:
       - name: Checkout code
@@ -97,12 +121,12 @@ jobs:
       
       # Save Docker to a zipfile and upload the Artifact for the integration testing stage 
       # Only run the steps below if the current Workflow is triggered by PR
-      - if: ${{ github.event_name == 'pull_request' }}
+      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         name: Save Docker Image to Tarball
         run: |
           docker save ${{ github.repository }}:feature-${{ github.sha }} | gzip > ${{ github.repository }}.tar.gz
       
-      - if: ${{ github.event_name == 'pull_request' }}
+      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         name: Upload ${{ github.repository }}.tar.gz for the integration test phase
         uses: actions/upload-artifact@v4
         with:
@@ -110,17 +134,51 @@ jobs:
           path: ${{ github.repository }}.tar.gz
           retention-days: 7
 
-
   # Only run the 'integration-test' if the current Workflow is triggered by PR
   integration-test:
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
     name: Run Integration Test
     runs-on: ubuntu-22.04
-    needs: "build"
-    
+    needs:
+      - "ci-status"
+      - "build"
+
+    environment: feature
+    env:
+      # Defaulft environment variables needed for the Docker Compose
+      SUBNET:               ${{ vars.feature.SUBNET }}
+
+      # Default environment variables needed for the Application
+      POSTGRES_IP:          ${{ vars.feature.POSTGRES_IP }}
+      POSTGRES_PORT:        ${{ vars.feature.POSTGRES_PORT }}
+
+      # Secret environments in the GitHub Workflow
+      POSTGRES_DB:          ${{ secrets.feature.POSTGRES_DB }}
+      POSTGRES_USER:        ${{ secrets.feature.POSTGRES_USER }}  
+      POSTGRES_PASSWORD:    ${{ secrets.feature.POSTGRES_PASSWORD }}
+
     steps:
       - name: Download build outputs
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.repository }}-gz-file     # must match the upload ‘name’
           path: artifact/
+
+      - name: Echo the build output
+        run: "ls artifact/"
+  
+      - name: Unbox Docker images
+        run: "docker load -i artifact/${{ github.repository }}-gz-file"
+
+      - name: Check the docker image label
+        run: "docker ps"
+
+      - name: Run Docker Compose for testing DB Connection
+        run: "docker compose up -d"
+
+      - name: Basic Request testing for the response
+        run: |
+          bash integration-test/test-db-connection.bash
+          bash integration-test/test-pod-id.bash
+
+
