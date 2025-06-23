@@ -180,8 +180,10 @@ jobs:
       - name: Basic Request testing for the response
         run: |
           pwd
+          ls -lR
           bash ./integration-test/test-db-connection.bash
           bash ./integration-test/test-pod-id.bash
+
   report-failure:
     if: failure()
     needs: [unit-test-and-lint, build, integration-test]
