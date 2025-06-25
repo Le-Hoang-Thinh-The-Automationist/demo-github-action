@@ -16,6 +16,3 @@ echo "==================="
 echo "HTTP Status: $code"
 echo "Response Body:"
 echo "$body"
-
-# For fail purpose
-exit 1

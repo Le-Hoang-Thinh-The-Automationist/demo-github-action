@@ -213,5 +213,5 @@ jobs:
             Workflow: ${{ github.workflow }}
             Job: ${{ github.job }}
             Status: ${{ job.status }}
-          to: bilgewaterian@gmail.com,markandadrien@gmail.com
+          to: ${{ secrets.EMAIL_USERNAME }}
           from: CI Notifier
