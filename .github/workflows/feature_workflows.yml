@@ -194,6 +194,24 @@ jobs:
     name: Report CI Build failure 
     runs-on: ubuntu-22.04
 
+    environment: personal
+
     steps:
       - name: Print CI build failed
         run: echo "CI build failed"
+
+      - name: Send failure email
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "🚨 CI Build Failed: ${{ github.repository }}"
+          body: |
+            The CI build for ${{ github.repository }} failed.
+            Workflow: ${{ github.workflow }}
+            Job: ${{ github.job }}
+            Status: ${{ job.status }}
+          to: bilgewaterian@gmail.com,markandadrien@gmail.com
+          from: CI Notifier
