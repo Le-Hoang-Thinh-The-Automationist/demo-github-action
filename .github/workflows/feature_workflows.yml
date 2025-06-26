@@ -119,13 +119,13 @@ jobs:
       
       # Save Docker to a zipfile and upload the Artifact for the integration testing stage 
       # Only run the steps below if the current Workflow is triggered by PR
-      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
-        name: Save Docker Image to Tarball
+      - name: Save Docker Image to Tarball
+        # if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         run: |
           docker save ${{ github.repository }}:feature-${{ github.sha }} -o ${{ needs.ci-status.outputs.repository_name }}.tar
       
-      - if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
-        name: Upload ${{ needs.ci-status.outputs.repository_name }}.tar for the integration test phase
+      - name: Upload ${{ needs.ci-status.outputs.repository_name }}.tar for the integration test phase
+        # if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.ci-status.outputs.repository_name }}-gz-file
@@ -215,7 +215,7 @@ jobs:
         with:
           sparse-checkout: .github/workflows/actions
           sparse-checkout-cone-mode: false
-          
+
       - name: Report Failure
         uses: ./.github/workflows/actions/send-email
         with:
