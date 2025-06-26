@@ -11,8 +11,11 @@ code=$(tail -n1 <<<"$response")
 
 echo "DEFAULT_ADDRESS: $DEFAULT_ADDRESS"
 echo "DEFAULT_PORT: $DEFAULT_PORT"
-echo "==================="
 
+echo "=========== TEST DB CONNECTION ========"
+echo "Request: 'curl $URL'"
+echo ""
+echo ""
 echo "HTTP Status: $code"
 echo "Response Body:"
 echo "$body"

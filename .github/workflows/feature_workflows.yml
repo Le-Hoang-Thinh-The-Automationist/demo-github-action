@@ -14,6 +14,9 @@ on:
     branches:
       - "feature/**"
 
+env:
+  JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND: 60
+
 jobs:
   unit-test-and-lint:
     name: Unit Test & Lint
@@ -182,6 +185,21 @@ jobs:
         with:
           sparse-checkout: integration-test
           sparse-checkout-cone-mode: false
+
+      # JVM would require a startup time before fully run
+      - name: Wait for container to be healthy
+        run: |
+          echo "Waiting for test-docker-app to report healthy…"
+          # give it up to ${{ github.env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s (adjust as needed)
+          timeout ${{ github.env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s bash -c '
+            until docker ps \
+              --filter "name=test-docker-app" \
+              --filter "health=healthy" \
+              --format "{{.Names}}" | grep -q test-docker-app; do
+              echo "🕐 still waiting…"
+              sleep 2
+            done
+          '
 
       - name: Basic Request testing for the response
         run: |

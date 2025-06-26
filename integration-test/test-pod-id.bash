@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-DEFAULT_ADDRESS="${POSTGRES_IP:-localhost}"
-DEFAULT_PORT="${POSTGRES_PORT:-8080}"
+DEFAULT_ADDRESS="${CONTAINER_IP:-localhost}"
+DEFAULT_PORT="${CONTAINER_PORT:-8080}"
 
 URL="http://$DEFAULT_ADDRESS:$DEFAULT_PORT/"
 
@@ -9,6 +9,11 @@ response=$(curl -s -w "\n%{http_code}" "$URL")
 body=$(head -n -1 <<<"$response")
 code=$(tail -n1 <<<"$response")
 
+
+echo "=========== TEST CONTAINER RUN CONNECTION ========"
+echo "Request: 'curl $URL'"
+echo ""
+echo ""
 echo "HTTP Status: $code"
 echo "Response Body:"
 echo "$body"
