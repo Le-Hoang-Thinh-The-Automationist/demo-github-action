@@ -14,8 +14,7 @@ on:
     branches:
       - "feature/**"
 
-env:
-  JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND: 60
+
 
 jobs:
   unit-test-and-lint:
@@ -145,7 +144,9 @@ jobs:
       POSTGRES_DB:          ${{ secrets.POSTGRES_DB }}
       POSTGRES_USER:        ${{ secrets.POSTGRES_USER }}  
       POSTGRES_PASSWORD:    ${{ secrets.POSTGRES_PASSWORD }}
-
+      
+      # Other environment
+      JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND: 60
     # Create a Docker dummy PostgreSQL database
     services:
       postgres:
@@ -190,8 +191,8 @@ jobs:
       - name: Wait for container to be healthy
         run: |
           echo "Waiting for test-docker-app to report healthy…"
-          # give it up to ${{ github.env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s (adjust as needed)
-          timeout ${{ github.env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s bash -c '
+          # give it up to ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s (adjust as needed)
+          timeout ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s bash -c '
             until docker ps \
               --filter "name=test-docker-app" \
               --filter "health=healthy" \
