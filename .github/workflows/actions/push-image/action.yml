@@ -47,7 +47,7 @@ runs:
       
       - name: Unzip the Docker zip artifact to docker image
         if: ${{ inputs.image-zip-artifact != '' }} 
-        run: "docker load -i ${{ inputs.image-zip-artifact }}.tar"
+        run: "docker load -i artifact/${{ inputs.image-zip-artifact }}.tar"
         shell: 'bash'
 
         # If the image has specific registry url behind, then it should be retaged
