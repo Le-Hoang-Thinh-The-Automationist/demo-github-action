@@ -167,10 +167,10 @@ jobs:
       - unit-test-and-lint
       - build
       # - integration-test
-    name: Deployed to the ${{ github.env.ENVIRONMENT }} environment
+    name: Deployed to the feature environment
     runs-on: ubuntu-22.04
 
-    environment: ${{ github.env.ENVIRONMENT }}
+    environment: feature
 
     steps:
       - name: Clone only Custom GitHub Actions
@@ -182,12 +182,12 @@ jobs:
       - name: Push Image to the ECR
         uses: ./.github/workflows/actions/push-image
         with:    
-          image_zip_artifact: ${{ needs.ci-status.outputs.repository_name }}-gz-file
+          image-zip-artifact: ${{ needs.ci-status.outputs.repository_name }}-gz-file
 
           # Image's info
-          image_name:         ${{ env.IMAGE_NAME }}
-          image_tag:          ${{ env.IMAGE_TAG}}
-          registry_url:       ${{ vars.IMAGE_REGISTRY_URL}}
+          image-name:         ${{ env.IMAGE_NAME }}
+          image-tag:          ${{ env.IMAGE_TAG}}
+          registry-url:       ${{ vars.IMAGE_REGISTRY_URL}}
 
           # ECR's info
           ecr-usage:          'true'
@@ -210,6 +210,12 @@ jobs:
     environment: personal
 
     steps:
+      - name: Clone only Custom GitHub Actions
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/workflows/actions
+          sparse-checkout-cone-mode: false
+          
       - name: Report Failure
         uses: ./.github/workflows/actions/send-email
         with:
