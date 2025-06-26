@@ -129,7 +129,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}-gz-file
-          path: ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}.tar
+          path: ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}-gz-file.tar
           retention-days: 7
 
   # # Only run the 'integration-test' if the current Workflow is triggered by PR
