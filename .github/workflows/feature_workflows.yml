@@ -137,7 +137,7 @@ jobs:
     environment: feature
     env:
       # Default environment variables needed for the Application
-      POSTGRES_IP:          ${{ vars.POSTGRES_IP }}
+      POSTGRES_IP:          postgres
       POSTGRES_PORT:        ${{ vars.POSTGRES_PORT }}
 
       # Secret environments in the GitHub Workflow
@@ -156,7 +156,7 @@ jobs:
           POSTGRES_USER:      ${{ secrets.POSTGRES_USER }}  
           POSTGRES_PASSWORD:  ${{ secrets.POSTGRES_PASSWORD }}
         ports:
-          - ${{ vars.POSTGRES_PORT }}:5432      
+          - ${{ vars.POSTGRES_PORT }}:5432
 
     steps:
       - name: Download build outputs
@@ -171,6 +171,7 @@ jobs:
       - name: Run Application Container
         run: |
           docker run -d \
+          --network bridge \
           --name test-docker-app \
           -p ${{ vars.CONTAINER_PORT }}:${{ vars.CONTAINER_PORT }} \
           -e HOSTNAME=ci_hostname \
