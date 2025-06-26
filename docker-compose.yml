@@ -1,8 +1,6 @@
 services:
   demo-app:
-    build:
-      context: .
-      dockerfile: Dockerfile 
+    image: ${APPLICATION_IMAGE}
     environment:
       # Application related environment variable 
       HOSTNAME: localhost-hostname 
@@ -17,10 +15,10 @@ services:
       - postgres
     
     ports:
-      - "18080:8080"    
+      - "${CONTAINER_PORT}:8080"    
     networks:
       rltc_network:
-        ipv4_address: ${RLTC_AUTH_IP}
+        ipv4_address: ${CONTAINER_IP}
 
   postgres:
     image: postgres:16

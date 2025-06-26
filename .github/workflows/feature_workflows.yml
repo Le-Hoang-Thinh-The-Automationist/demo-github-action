@@ -136,27 +136,20 @@ jobs:
 
     environment: feature
     env:
-      # Default environment variables needed for the Application
-      POSTGRES_IP:          postgres
-      POSTGRES_PORT:        ${{ vars.POSTGRES_PORT }}
-
       # Secret environments in the GitHub Workflow
       POSTGRES_DB:          ${{ secrets.POSTGRES_DB }}
       POSTGRES_USER:        ${{ secrets.POSTGRES_USER }}  
       POSTGRES_PASSWORD:    ${{ secrets.POSTGRES_PASSWORD }}
+
+      # Default environment variables needed for the Application
+      POSTGRES_IP:          ${{ vars.POSTGRES_IP }}
+      POSTGRES_PORT:        ${{ vars.POSTGRES_PORT }}
       
-      # Other environment
-      JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND: 60
-    # Create a Docker dummy PostgreSQL database
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB:        ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER:      ${{ secrets.POSTGRES_USER }}  
-          POSTGRES_PASSWORD:  ${{ secrets.POSTGRES_PASSWORD }}
-        ports:
-          - ${{ vars.POSTGRES_PORT }}:5432
+      # Application related environment
+      APPLICATION_IMAGE:                       ${{ github.repository }}:feature-${{ github.sha }}
+      SUBNET:                                  ${{ vars.SUBNET}}
+      CONTAINER_IP:                            ${{ vars.CONTAINER_IP}}
+      CONTAINER_PORT:                          ${{ vars.CONTAINER_PORT}}
 
     steps:
       - name: Download build outputs
@@ -168,41 +161,16 @@ jobs:
       - name: Unbox Docker images
         run: "docker load -i artifact/${{ needs.ci-status.outputs.repository_name }}.tar"
 
-      - name: Run Application Container
-        run: |
-          docker run -d \
-          --network bridge \
-          --name test-docker-app \
-          -p ${{ vars.CONTAINER_PORT }}:${{ vars.CONTAINER_PORT }} \
-          -e HOSTNAME=ci_hostname \
-          -e POSTGRES_IP=$POSTGRES_IP \
-          -e POSTGRES_PORT=$POSTGRES_PORT \
-          -e POSTGRES_DB=$POSTGRES_DB \
-          -e POSTGRES_USER=$POSTGRES_USER \
-          -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-          ${{ github.repository }}:feature-${{ github.sha }} \
-
       - name: Fetch the integration test script from the repository
         uses: actions/checkout@v2
         with:
-          sparse-checkout: integration-test
+          sparse-checkout: |
+            docker-compose.yml
+            integration-test
           sparse-checkout-cone-mode: false
 
-      # JVM would require a startup time before fully run
-      - name: Wait for container to be healthy
-        run: |
-          echo "Waiting for test-docker-app to report healthy…"
-          # give it up to ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s (adjust as needed)
-          timeout ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s bash -c '
-            until docker ps \
-              --filter "name=test-docker-app" \
-              --filter "health=healthy" \
-              --format "{{.Names}}" | grep -q test-docker-app; do
-              docker ps
-              echo "🕐 still waiting…"
-              sleep 2
-            done
-          '
+      - name: Run the docker compose for integration testing
+        run: docker compose up -d
 
       - name: Basic Request testing for the response
         run: |
