@@ -182,7 +182,7 @@ jobs:
           # give it up to ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s (adjust as needed)
           timeout ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s bash -c '
             until docker ps \
-              --filter "name=*app_service" \
+              --filter "name=app_service" \
               --filter "health=healthy" \
               --format "{{.Names}}" | grep -q app_service; do
               docker ps
