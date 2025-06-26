@@ -122,7 +122,7 @@ jobs:
       - name: Save Docker Image to Tarball
         # if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         run: |
-          docker save ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}} -o ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}.tar
+          docker save ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}} -o ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}-gz-file.tar
       
       - name: Upload ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}.tar for the integration test phase
         # if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
