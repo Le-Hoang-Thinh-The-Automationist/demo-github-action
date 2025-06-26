@@ -137,19 +137,20 @@ jobs:
     environment: feature
     env:
       # Secret environments in the GitHub Workflow
-      POSTGRES_DB:          ${{ secrets.POSTGRES_DB }}
-      POSTGRES_USER:        ${{ secrets.POSTGRES_USER }}  
-      POSTGRES_PASSWORD:    ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB:                             ${{ secrets.POSTGRES_DB }}
+      POSTGRES_USER:                           ${{ secrets.POSTGRES_USER }}  
+      POSTGRES_PASSWORD:                       ${{ secrets.POSTGRES_PASSWORD }}
 
       # Default environment variables needed for the Application
-      POSTGRES_IP:          ${{ vars.POSTGRES_IP }}
-      POSTGRES_PORT:        ${{ vars.POSTGRES_PORT }}
+      POSTGRES_IP:                             ${{ vars.POSTGRES_IP }}
+      POSTGRES_PORT:                           ${{ vars.POSTGRES_PORT }}
       
       # Application related environment
       APPLICATION_IMAGE:                       ${{ github.repository }}:feature-${{ github.sha }}
       SUBNET:                                  ${{ vars.SUBNET}}
       CONTAINER_IP:                            ${{ vars.CONTAINER_IP}}
       CONTAINER_PORT:                          ${{ vars.CONTAINER_PORT}}
+      JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND: 60
 
     steps:
       - name: Download build outputs
@@ -170,7 +171,25 @@ jobs:
           sparse-checkout-cone-mode: false
 
       - name: Run the docker compose for integration testing
-        run: docker compose up -d
+        run: | 
+          docker compose up -d
+          docker ps
+
+      # JVM would require a startup time before fully run
+      - name: Wait for container to be healthy
+        run: |
+          echo "Waiting for app_service to report healthy…"
+          # give it up to ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s (adjust as needed)
+          timeout ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s bash -c '
+            until docker ps \
+              --filter "name=*app_service" \
+              --filter "health=healthy" \
+              --format "{{.Names}}" | grep -q app_service; do
+              docker ps
+              echo "🕐 still waiting…"
+              sleep 2
+            done
+          '
 
       - name: Basic Request testing for the response
         run: |

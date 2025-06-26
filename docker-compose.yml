@@ -1,6 +1,7 @@
 services:
   demo-app:
     image: ${APPLICATION_IMAGE}
+    container_name: app_service
     environment:
       # Application related environment variable 
       HOSTNAME: localhost-hostname 
@@ -17,12 +18,12 @@ services:
     ports:
       - "${CONTAINER_PORT}:8080"    
     networks:
-      rltc_network:
+      services_network:
         ipv4_address: ${CONTAINER_IP}
 
   postgres:
     image: postgres:16
-    container_name: auth_postgres
+    container_name: db_postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -31,13 +32,13 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     networks:
-      rltc_network:
+      services_network:
         ipv4_address: ${POSTGRES_IP}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     
 networks:
-  rltc_network:
+  services_network:
     driver: bridge
     ipam:
       config:
