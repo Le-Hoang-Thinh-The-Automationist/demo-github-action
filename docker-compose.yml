@@ -1,0 +1,48 @@
+services:
+  demo-app:
+    image: ${APPLICATION_IMAGE}
+    container_name: app_service
+    environment:
+      # Application related environment variable 
+      HOSTNAME: localhost-hostname 
+      
+      # Database related environment variable
+      POSTGRES_IP: ${POSTGRES_IP}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres
+    
+    ports:
+      - "${CONTAINER_PORT}:8080"    
+    networks:
+      services_network:
+        ipv4_address: ${CONTAINER_IP}
+
+  postgres:
+    image: postgres:16
+    container_name: db_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      services_network:
+        ipv4_address: ${POSTGRES_IP}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+networks:
+  services_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet:  ${SUBNET}
+
+volumes:
+  postgres_data:
