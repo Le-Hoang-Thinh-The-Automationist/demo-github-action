@@ -197,6 +197,7 @@ jobs:
               --filter "name=test-docker-app" \
               --filter "health=healthy" \
               --format "{{.Names}}" | grep -q test-docker-app; do
+              docker ps
               echo "🕐 still waiting…"
               sleep 2
             done
