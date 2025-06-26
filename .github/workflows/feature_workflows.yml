@@ -173,6 +173,12 @@ jobs:
     environment: ${{ github.env.ENVIRONMENT }}
 
     steps:
+      - name: Clone only Custom GitHub Actions
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/workflows/actions
+          sparse-checkout-cone-mode: false
+
       - name: Push Image to the ECR
         uses: ./.github/workflows/actions/push-image
         with:    
@@ -185,7 +191,7 @@ jobs:
 
           # ECR's info
           ecr-usage:          'true'
-          role-to-assume:     ${{ vars.AWS_GITHUB__ACTION_ROLE }}    
+          role-to-assume:     ${{ vars.AWS_GITHUB_ACTION_ROLE }}    
           aws-region:         ${{ vars.AWS_ECR_REGION }}
 
       - name: Deploy using Helm Chart
@@ -213,4 +219,4 @@ jobs:
           workflow:       ${{ github.workflow }}
           email_username: ${{ secrets.EMAIL_USERNAME }}
           email_password: ${{ secrets.EMAIL_PASSWORD }}
-          notify_to:      thinhphuongdong3@gmail.com,markandadrien@gmail.com
+          notify_to:      markandadrien@gmail.com
