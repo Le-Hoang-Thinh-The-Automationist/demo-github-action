@@ -115,21 +115,21 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ${{ github.repository }}:feature-${{ github.sha }} .
+          docker build -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}} .
       
       # Save Docker to a zipfile and upload the Artifact for the integration testing stage 
       # Only run the steps below if the current Workflow is triggered by PR
       - name: Save Docker Image to Tarball
         # if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         run: |
-          docker save ${{ github.repository }}:feature-${{ github.sha }} -o ${{ needs.ci-status.outputs.repository_name }}.tar
+          docker save ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}} -o ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}.tar
       
-      - name: Upload ${{ needs.ci-status.outputs.repository_name }}.tar for the integration test phase
+      - name: Upload ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}.tar for the integration test phase
         # if: ${{ needs.ci-status.outputs.currently_has_pr == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.ci-status.outputs.repository_name }}-gz-file
-          path: ${{ needs.ci-status.outputs.repository_name }}.tar
+          name: ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}-gz-file
+          path: ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}.tar
           retention-days: 7
 
   # # Only run the 'integration-test' if the current Workflow is triggered by PR
@@ -182,7 +182,7 @@ jobs:
       - name: Push Image to the ECR
         uses: ./.github/workflows/actions/push-image
         with:    
-          image-zip-artifact: ${{ needs.ci-status.outputs.repository_name }}-gz-file
+          image-zip-artifact: ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}-gz-file
 
           # Image's info
           image-name:         ${{ env.IMAGE_NAME }}
