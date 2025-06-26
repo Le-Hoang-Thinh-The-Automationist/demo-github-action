@@ -173,19 +173,17 @@ jobs:
       - name: Run the docker compose for integration testing
         run: | 
           docker compose up -d
-          docker ps
 
       # JVM would require a startup time before fully run
       - name: Wait for container to be healthy
         run: |
-          echo "Waiting for app_service to report healthy…"
+          echo "Waiting for app_service to report healthy… by waiting for ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s"
           # give it up to ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s (adjust as needed)
           timeout ${{ env.JAVA_APPLICATION_WAIT_TIMEOUT_IN_SECOND }}s bash -c '
             until docker ps \
               --filter "name=app_service" \
               --filter "health=healthy" \
               --format "{{.Names}}" | grep -q app_service; do
-              docker ps
               echo "🕐 still waiting…"
               sleep 2
             done
