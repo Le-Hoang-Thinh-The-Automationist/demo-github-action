@@ -1,0 +1,13 @@
+name: Deploy using Helm Chart
+description: "Deploy using Helm Chart"
+inputs:
+    helm_input:
+        description: "Image"
+        default: "false"
+        required: true
+runs:
+    using: 'composite' 
+    steps:
+      - name: Deploy using Helm Chart
+        run: echo "Deploy using Helm Chart"
+        shell: bash

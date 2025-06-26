@@ -1,0 +1,58 @@
+name: Report Failure
+description: "Report failure"
+inputs:
+    repository:
+        description: "Workflow's repository"
+        required: true
+    job:
+        description: "Workflow's job"
+        required: true
+    status:
+        description: "Workflow's status"
+        required: true
+    workflow:
+        description: "Workflow name"
+        required: true
+    smtp_server_url:
+        description: "SMTP server to be used for sending email"
+        default: "smtp.gmail.com"
+        required: true 
+    smtp_server_port:
+        description: "SMTP server to be used for sending email"
+        default: "465"
+        required: true 
+    email_username:
+        description: "Email's username to be used"
+        required: true
+    email_password:
+        description: "Email's password"
+        required: true
+    notify_from:
+        description: "Emailed from"
+        default: "CI Notifier"
+        required: true
+    notify_to:
+        description: "Emailed to"
+        required: true
+runs:
+    using: 'composite' 
+    steps:
+      - name: Print CI build failed
+        run: echo "CI build failed"
+        shell: bash
+
+      - name: Send failure email
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: ${{ inputs.smtp_server_url }}
+          server_port:    ${{ inputs.smtp_server_port }}
+          username:       ${{ inputs.email_username }}
+          password:       ${{ inputs.email_password }}
+          subject: "CI Build Failed: ${{ inputs.repository }}"
+          body: |
+            The CI build for ${{ inputs.repository }} failed.
+            Workflow: ${{ inputs.workflow }}
+            Job: ${{ inputs.job }}
+            Status: ${{ inputs.status }}
+          to:             ${{ inputs.notify_to }}
+          from:           ${{ inputs.notify_from }}
