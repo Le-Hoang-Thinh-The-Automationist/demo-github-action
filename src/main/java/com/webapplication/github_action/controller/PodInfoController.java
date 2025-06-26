@@ -13,5 +13,10 @@ public class PodInfoController {
 
         return "Hello world, welcome to " + hostname;
     }
+        
+    @GetMapping("/health")
+    public String getHealthState() {
+        return "Currently the App is still healthy";
+    }
 
 }
