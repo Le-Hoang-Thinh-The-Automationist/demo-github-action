@@ -18,6 +18,22 @@ inputs:
       description: "The default Kubeconfig to connect to the K8s API server"
       required: true    
 
+    ca_cert_filepath:
+      description: "Filepath for storing the ca_cert"
+      default: ".kube/ca_cert_filepath"
+
+    client_key_filepath:
+      description: "Filepath for storing the client_key"
+      default: ".kube/client_key_filepath"
+
+    client_cert_filepath:
+      description: "Filepath for storing the client_cert"
+      default: ".kube/client_cert_filepath"
+
+    kubeconfig_filepath:
+      description: "Filepath for storing the kubeconfig"
+      default: ".kube/kubeconfig_filepath"
+
     # Configuration for Helm Chart Deployment 
     helm_input_image_repository:
       description: "Image"
@@ -33,25 +49,31 @@ inputs:
 
     helm_namespace:
       description: Which namespace should the helm package to be deployed in
-
+  
 runs:
-    using: 'composite' 
+    using: 'composite'
+  
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up KUBECONFIG
         env:
+          # File content
           KUBE_CA_CERT: ${{ inputs.ca_cert }}
           KUBE_CLIENT_KEY: ${{ inputs.client_key }}
           KUBE_CLIENT_CERT: ${{ inputs.client_cert }}
           KUBECONFIG_DATA: ${{ inputs.kubeconfig }}
+          # Filepath
+          KUBE_CA_CERT_FILEPATH: ${{ inputs.ca_cert_filepath }}
+          KUBE_CLIENT_KEY_FILEPATH: ${{ inputs.client_key_filepath }}
+          KUBE_CLIENT_CERT_FILEPATH: ${{ inputs.client_cert_filepath }}
+          KUBECONFIG_DATA_FILEPATH: ${{ inputs.kubeconfig_filepath }}
         run:
-          mkdir ~/.kube
-          echo "$KUBE_CA_CERT" > ~/.kube/ca_cert
-          echo "$KUBE_CLIENT_KEY" > ~/.kube/client_key
-          echo "$KUBE_CLIENT_CERT" > ~/.kube/client_cert
-          echo "$KUBECONFIG_DATA" > ~/.kube/config
-
+          mkdir .kube
+          echo "$KUBE_CA_CERT" > $KUBE_CA_CERT_FILEPATH
+          echo "$KUBE_CLIENT_KEY" > $KUBE_CLIENT_KEY_FILEPATH
+          echo "$KUBE_CLIENT_CERT" > $KUBE_CLIENT_CERT_FILEPATH
+          echo "$KUBECONFIG_DATA" > $KUBECONFIG_DATA_FILEPATH
         shell: bash
 
       - name: Install Helm
@@ -60,8 +82,11 @@ runs:
         shell: bash
 
       - name: Deploy Helm Chart
+        env:
+          KUBECONFIG_DATA_FILEPATH: ${{ inputs.kubeconfig_filepath }}
+
         run: |
-          helm upgrade --install ${{inputs.helm_chart_name }} ${{inputs.helm_chart }} \
+          KUBECONFIG=$KUBECONFIG_DATA_FILEPATH helm upgrade --install ${{inputs.helm_chart_name }} ${{inputs.helm_chart }} \
             --set deployment.pod.image.repository='${{ inputs.helm_input_image_repository }}' \
             --set deployment.pod.image.tag='${{ inputs.helm_input_image_tag }}' \
             --namespace ${{ inputs.helm_namespace }} \
