@@ -21,7 +21,7 @@ inputs:
     client_cert:
       description: "CA crt in order for the kubectl to trust the SSL Cert from the API server"
       required: true
-      
+
     ca_cert_filepath:
       description: "Filepath for storing the ca_cert"
       default: ".kube/ca_cert_filepath"
@@ -48,7 +48,11 @@ inputs:
       required: true
 
     helm_chart:
-      description: "Helm Chart to deploy"
+      description: "Helm Chart folder to be used to deploy"
+      required: true
+
+    helm_chart_name:
+      description: "Helm Chart Name to deploy or upgrade "
       required: true
 
     helm_namespace:

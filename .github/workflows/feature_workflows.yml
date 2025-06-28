@@ -210,6 +210,7 @@ jobs:
           helm_input_image_repository:  ${{ steps.push-image-to-ecr.outputs.image_repository }}
           helm_input_image_tag:         ${{ env.IMAGE_TAG }}
           helm_chart:                   ${{ env.HELM_CHART }}
+          helm_chart_name:              package-${{ env.HELM_CHART }}
           helm_namespace:               ${{ env.ENVIRONMENT }}
           
   report-failure:
