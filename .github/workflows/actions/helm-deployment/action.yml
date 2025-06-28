@@ -68,12 +68,13 @@ runs:
           KUBE_CLIENT_KEY_FILEPATH: ${{ inputs.client_key_filepath }}
           KUBE_CLIENT_CERT_FILEPATH: ${{ inputs.client_cert_filepath }}
           KUBECONFIG_DATA_FILEPATH: ${{ inputs.kubeconfig_filepath }}
-        run:
+        run: |
           mkdir .kube
           echo "$KUBE_CA_CERT" > $KUBE_CA_CERT_FILEPATH
           echo "$KUBE_CLIENT_KEY" > $KUBE_CLIENT_KEY_FILEPATH
           echo "$KUBE_CLIENT_CERT" > $KUBE_CLIENT_CERT_FILEPATH
           echo "$KUBECONFIG_DATA" > $KUBECONFIG_DATA_FILEPATH
+          ls .kube
         shell: bash
 
       - name: Install Helm
