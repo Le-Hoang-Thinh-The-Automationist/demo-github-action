@@ -203,8 +203,8 @@ jobs:
           ca_cert:              ${{ secrets.KUBE_CA_CERT }}
           client_key:           ${{ secrets.KUBE_CLIENT_KEY }}  
           client_cert:          ${{ secrets.KUBE_CLIENT_CERT }}    
-          kube_server_api_ip:   ${{ secrets.KUBE_SERVER_API_ADDRESS }}
-          kube_server_api_port: ${{ secrets.KUBE_SERVER_API_PORT }}
+          kube_server_api_ip:   ${{ vars.KUBE_SERVER_API_ADDRESS }}
+          kube_server_api_port: ${{ vars.KUBE_SERVER_API_PORT }}
            
           # Helm's Config data for deploy Helm Chart
           helm_input_image_repository:  ${{ steps.push-image-to-ecr.outputs.image_repository }}
