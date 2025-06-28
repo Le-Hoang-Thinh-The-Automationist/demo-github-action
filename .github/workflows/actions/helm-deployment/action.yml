@@ -81,6 +81,7 @@ runs:
 
         run: |
           mkdir .kube
+          export CURRENT_WORKDIR=$(pwd)
           echo "$KUBE_CA_CERT" > $KUBE_CA_CERT_FILEPATH
           echo "$KUBE_CLIENT_KEY" > $KUBE_CLIENT_KEY_FILEPATH
           echo "$KUBE_CLIENT_CERT" > $KUBE_CLIENT_CERT_FILEPATH
