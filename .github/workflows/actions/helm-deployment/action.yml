@@ -2,6 +2,14 @@ name: Deploy using Helm Chart
 description: "Deploy using Helm Chart"
 inputs:
     # Configuration for the kubectl to access to the minikube's API server
+    kube_server_api_ip:
+      description: "CA crt in order for the kubectl to trust the SSL Cert from the API server"
+      required: true   
+
+    kube_server_api_port:
+      description: "CA crt in order for the kubectl to trust the SSL Cert from the API server"
+      required: true      
+
     ca_cert:
       description: "CA crt in order for the kubectl to trust the SSL Cert from the API server"
       required: true
@@ -13,11 +21,7 @@ inputs:
     client_cert:
       description: "CA crt in order for the kubectl to trust the SSL Cert from the API server"
       required: true
-
-    kubeconfig:
-      description: "The default Kubeconfig to connect to the K8s API server"
-      required: true    
-
+      
     ca_cert_filepath:
       description: "Filepath for storing the ca_cert"
       default: ".kube/ca_cert_filepath"
@@ -62,18 +66,21 @@ runs:
           KUBE_CA_CERT: ${{ inputs.ca_cert }}
           KUBE_CLIENT_KEY: ${{ inputs.client_key }}
           KUBE_CLIENT_CERT: ${{ inputs.client_cert }}
-          KUBECONFIG_DATA: ${{ inputs.kubeconfig }}
+          KUBE_SERVER_API_ADDRESS:  ${{ inputs.kube_server_api_ip }}
+          KUBE_SERVER_API_PORT:     ${{ inputs.kube_server_api_port }}
+          
           # Filepath
           KUBE_CA_CERT_FILEPATH: ${{ inputs.ca_cert_filepath }}
           KUBE_CLIENT_KEY_FILEPATH: ${{ inputs.client_key_filepath }}
           KUBE_CLIENT_CERT_FILEPATH: ${{ inputs.client_cert_filepath }}
           KUBECONFIG_DATA_FILEPATH: ${{ inputs.kubeconfig_filepath }}
+
         run: |
           mkdir .kube
           echo "$KUBE_CA_CERT" > $KUBE_CA_CERT_FILEPATH
           echo "$KUBE_CLIENT_KEY" > $KUBE_CLIENT_KEY_FILEPATH
           echo "$KUBE_CLIENT_CERT" > $KUBE_CLIENT_CERT_FILEPATH
-          echo "$KUBECONFIG_DATA" > $KUBECONFIG_DATA_FILEPATH
+          envsubst < './.github/workflows/actions/helm-deployment/template/kubeconfig.yml' > $KUBECONFIG_DATA_FILEPATH
           ls .kube
         shell: bash
 

@@ -200,11 +200,12 @@ jobs:
         uses: ./.github/workflows/actions/helm-deployment
         with:
           # Kubeconfig for kubectl access to K8s API server
-          ca_cert:            ${{ secrets.KUBE_CA_CERT }}
-          client_key:         ${{ secrets.KUBE_CLIENT_KEY }}  
-          client_cert:        ${{ secrets.KUBE_CLIENT_CERT }}    
-          kubeconfig:         ${{ secrets.KUBECONFIG_DATA }}
-          
+          ca_cert:              ${{ secrets.KUBE_CA_CERT }}
+          client_key:           ${{ secrets.KUBE_CLIENT_KEY }}  
+          client_cert:          ${{ secrets.KUBE_CLIENT_CERT }}    
+          kube_server_api_ip:   ${{ secrets.KUBE_SERVER_API_ADDRESS }}
+          kube_server_api_port: ${{ secrets.KUBE_SERVER_API_PORT }}
+           
           # Helm's Config data for deploy Helm Chart
           helm_input_image_repository:  ${{ steps.push-image-to-ecr.outputs.image_repository }}
           helm_input_image_tag:         ${{ env.IMAGE_TAG }}
