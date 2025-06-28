@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployment.name }}
+  labels:
+    app: {{ .Values.deployment.label }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.deployment.pod.label }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.deployment.pod.label }}
+    spec:
+      containers:
+        - name: {{ .Values.deployment.pod.container.name }}
+          image: "{{ .Values.deployment.pod.image.repository }}:{{ .Values.deployment.pod.image.tag }}"
+          imagePullPolicy: {{ .Values.deployment.pod.image.pullPolicy }}

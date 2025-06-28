@@ -18,6 +18,7 @@ env:
   ENVIRONMENT:        feature
   IMAGE_TAG:          feature-${{ github.sha }}
   IMAGE_NAME:         demo-github-action
+  HELM_CHART:         deploy
 
 permissions:
   id-token: write       # Required for OIDC
@@ -181,13 +182,14 @@ jobs:
 
       - name: Push Image to the ECR
         uses: ./.github/workflows/actions/push-image
+        id: push-image-to-ecr
         with:    
           image-zip-artifact: ${{ env.IMAGE_NAME }}_${{ env.IMAGE_TAG}}-gz-file
 
           # Image's info
           image-name:         ${{ env.IMAGE_NAME }}
           image-tag:          ${{ env.IMAGE_TAG}}
-          registry-url:       ${{ vars.IMAGE_REGISTRY_URL}}
+          registry-url:       ${{ vars.IMAGE_REGISTRY_URL }}
 
           # ECR's info
           ecr-usage:          'true'
@@ -196,7 +198,19 @@ jobs:
 
       - name: Deploy using Helm Chart
         uses: ./.github/workflows/actions/helm-deployment
-
+        with:
+          # Kubeconfig for kubectl access to K8s API server
+          ca_cert:            ${{ secrets.KUBE_CA_CERT }}
+          client_key:         ${{ secrets.KUBE_CLIENT_KEY }}  
+          client_cert:        ${{ secrets.KUBE_CLIENT_CERT }}    
+          kubeconfig:         ${{ secrets.KUBECONFIG_DATA }}
+          
+          # Helm's Config data for deploy Helm Chart
+          helm_input_image_repository:  ${{ steps.push-image-to-ecr.outputs.image_repository }}
+          helm_input_image_tag:         ${{ env.IMAGE_TAG }}
+          helm_chart:                   ${{ env.HELM_CHART }}
+          helm_namespace:               ${{ env.ENVIRONMENT }}
+          
   report-failure:
     if: failure()
     needs: 

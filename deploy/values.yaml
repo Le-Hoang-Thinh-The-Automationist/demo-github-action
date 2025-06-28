@@ -1,0 +1,15 @@
+
+
+deployment:
+  name: deployment-demo-github-action-name
+  label: deployment-demo-github-action-label
+  pod:
+    label: pod-demo-github-action-label
+    container:
+      name: demo-github-action
+    image:
+      repository: 692859912260.dkr.ecr.ap-southeast-1.amazonaws.com/demo-github-action
+      tag: "1.21.0"  # You can override this via --set image.tag=<your-tag>
+      pullPolicy: IfNotPresent
+      
+replicaCount: 1

@@ -1,13 +1,69 @@
 name: Deploy using Helm Chart
 description: "Deploy using Helm Chart"
 inputs:
-    helm_input:
-        description: "Image"
-        default: "false"
-        required: true
+    # Configuration for the kubectl to access to the minikube's API server
+    ca_cert:
+      description: "CA crt in order for the kubectl to trust the SSL Cert from the API server"
+      required: true
+
+    client_key:
+      description: "CA crt in order for the kubectl to trust the SSL Cert from the API server"
+      required: true
+
+    client_cert:
+      description: "CA crt in order for the kubectl to trust the SSL Cert from the API server"
+      required: true
+
+    kubeconfig:
+      description: "The default Kubeconfig to connect to the K8s API server"
+      required: true    
+
+    # Configuration for Helm Chart Deployment 
+    helm_input_image_repository:
+      description: "Image"
+      required: true
+
+    helm_input_image_tag:
+      description: "Image"
+      required: true
+
+    helm_chart:
+      description: "Helm Chart to deploy"
+      required: true
+
+    helm_namespace:
+      description: Which namespace should the helm package to be deployed in
+
 runs:
     using: 'composite' 
     steps:
-      - name: Deploy using Helm Chart
-        run: echo "Deploy using Helm Chart"
+      - uses: actions/checkout@v4
+
+      - name: Set up KUBECONFIG
+        env:
+          KUBE_CA_CERT: ${{ inputs.ca_cert }}
+          KUBE_CLIENT_KEY: ${{ inputs.client_key }}
+          KUBE_CLIENT_CERT: ${{ inputs.client_cert }}
+          KUBECONFIG_DATA: ${{ inputs.kubeconfig }}
+        run:
+          mkdir ~/.kube
+          echo "$KUBE_CA_CERT" > ~/.kube/ca_cert
+          echo "$KUBE_CLIENT_KEY" > ~/.kube/client_key
+          echo "$KUBE_CLIENT_CERT" > ~/.kube/client_cert
+          echo "$KUBECONFIG_DATA" > ~/.kube/config
+
+        shell: bash
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        shell: bash
+
+      - name: Deploy Helm Chart
+        run: |
+          helm upgrade --install ${{inputs.helm_chart_name }} ${{inputs.helm_chart }} \
+            --set deployment.pod.image.repository='${{ inputs.helm_input_image_repository }}' \
+            --set deployment.pod.image.tag='${{ inputs.helm_input_image_tag }}' \
+            --namespace ${{ inputs.helm_namespace }} \
+            --create-namespace \
         shell: bash
