@@ -94,12 +94,16 @@ runs:
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
         shell: bash
 
+      # - name: Push Helm Chart to Github Pages
+      #   run: ""
+      #   shell: bash
+
       - name: Deploy Helm Chart
         env:
           KUBECONFIG_DATA_FILEPATH: ${{ inputs.kubeconfig_filepath }}
 
         run: |
-          KUBECONFIG=$KUBECONFIG_DATA_FILEPATH helm upgrade --install ${{inputs.helm_chart_name }} ${{inputs.helm_chart }} \
+          KUBECONFIG=$KUBECONFIG_DATA_FILEPATH helm upgrade --install ${{inputs.helm_chart_name }} ./${{inputs.helm_chart }} \
             --set deployment.pod.image.repository='${{ inputs.helm_input_image_repository }}' \
             --set deployment.pod.image.tag='${{ inputs.helm_input_image_tag }}' \
             --namespace ${{ inputs.helm_namespace }} \
