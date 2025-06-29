@@ -211,6 +211,7 @@ jobs:
           # Helm's Config data for deploy Helm Chart
           helm_input_image_repository:  ${{ steps.push-image-to-ecr.outputs.image_repository }}
           helm_input_image_tag:         ${{ env.IMAGE_TAG }}
+          helm_secret_pull_image_name:  ${{ vars.KUBE_SECRET_PULL_IMAGE_OBJECT_NAME }}
           helm_chart:                   ${{ env.HELM_CHART }}
           helm_chart_name:              package-${{ env.HELM_CHART }}
           helm_namespace:               ${{ env.ENVIRONMENT }}

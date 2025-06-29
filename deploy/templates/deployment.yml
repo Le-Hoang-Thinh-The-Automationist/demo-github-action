@@ -14,6 +14,8 @@ spec:
       labels:
         app: {{ .Values.deployment.pod.label }}
     spec:
+      imagePullSecrets:
+        - name:  {{ .Values.deployment.pod.imagePullSecretsName }}
       containers:
         - name: {{ .Values.deployment.pod.container.name }}
           image: "{{ .Values.deployment.pod.image.repository }}:{{ .Values.deployment.pod.image.tag }}"
