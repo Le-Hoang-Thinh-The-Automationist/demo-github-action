@@ -31,10 +31,10 @@ inputs:
 outputs:
     image_repository:
         description: "Docker Image Repostiory"
-        value: ${{ steps.image_retag.image_repository }}
+        value: ${{ steps.image_retag.outputs.image_repository }}
     full_docker_image:
         description: "Full Docker Image name"
-        value: ${{ steps.image_retag.full_docker_image }}
+        value: ${{ steps.image_retag.outputs.full_docker_image }}
 
 runs:
     using: 'composite' 
