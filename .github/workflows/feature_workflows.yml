@@ -177,7 +177,9 @@ jobs:
       - name: Clone only Custom GitHub Actions
         uses: actions/checkout@v4
         with:
-          sparse-checkout: .github/workflows/actions
+          sparse-checkout: |
+            .github/workflows/actions
+            deploy
           sparse-checkout-cone-mode: false
 
       - name: Push Image to the ECR
