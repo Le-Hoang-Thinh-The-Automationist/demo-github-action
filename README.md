@@ -134,7 +134,7 @@ Based on the collected requirements below, the rationale for the designed CI/CD 
 - **Build**
   - Compile code and package it as a deployable artifact (e.g., a JAR/WAR file for Java projects).
   - Generate a Docker image using a Dockerfile. Tag the image with branch name and commit SHA to ensure traceability.
-
+ 
 - **Integration Testing:**
   - Should only run if the triggered event is pull request
   - Testing by sending API Request to check for response
