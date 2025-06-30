@@ -129,7 +129,7 @@ Based on the collected requirements below, the rationale for the designed CI/CD 
  
 - **Lint & Test**
   - Running Unit Test with the `mvn verify`
-  - (**Open point**: )
+  - (**Open point**: Is there any other Lint and test tool for the CI?)
 
 - **Build**
   - Compile code and package it as a deployable artifact (e.g., a JAR/WAR file for Java projects).
